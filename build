@@ -1,0 +1,2 @@
+gcc -Wall -Wextra roots.c -o roots -lm
+gcc -Wall -Wextra test.c -o test
