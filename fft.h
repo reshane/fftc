@@ -34,10 +34,10 @@ typedef struct {
     float complex* data;
 } fft_Vec_cf;
 fft_Vec_cf fft_vec_alloc(size_t cap);
-void fft_vec_free(fft_Vec_cf v);
-float complex* fft_vec_at(fft_Vec_cf v, size_t i);
-float complex fft_vec_get(fft_Vec_cf v, size_t i);
-void fft_vec_set(fft_Vec_cf v, size_t i, float complex e);
+void fft_vec_free(fft_Vec_cf* v);
+float complex* fft_vec_at(fft_Vec_cf* v, size_t i);
+float complex fft_vec_get(fft_Vec_cf* v, size_t i);
+void fft_vec_set(fft_Vec_cf* v, size_t i, float complex e);
 
 #endif // FFT_H_
 
@@ -60,24 +60,25 @@ fft_Vec_cf fft_vec_alloc(size_t cap)
     return v;
 }
 
-void fft_vec_free(fft_Vec_cf v)
+void fft_vec_free(fft_Vec_cf* v)
 {
-    FFT_FREE(v.data);
+    FFT_FREE(v->data);
 }
 
-float complex* fft_vec_at(fft_Vec_cf v, size_t i)
+float complex* fft_vec_at(fft_Vec_cf* v, size_t i)
 {
-    FFT_ASSERT(i < v.size);
-    return &v.data[i];
+    FFT_ASSERT(i < v->size);
+    return &v->data[i];
 }
 
-float complex fft_vec_get(fft_Vec_cf v, size_t i)
+float complex fft_vec_get(fft_Vec_cf* v, size_t i)
 {
     return *fft_vec_at(v, i);
 }
 
-void fft_vec_set(fft_Vec_cf v, size_t i, float complex e)
+void fft_vec_set(fft_Vec_cf* v, size_t i, float complex e)
 {
+    FFT_ASSERT(i < v->size);
     *fft_vec_at(v, i) = e;
 }
 
