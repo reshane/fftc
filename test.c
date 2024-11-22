@@ -23,6 +23,7 @@ int failed = 0;
     printf("\033[0;32mPASS: %s(%f)==%s(%f)\n\033[0m", #f1, f1, #f2, f2); \
 } else { \
     printf("\033[0;31mFAIL: %s(%f)==%s(%f)\n\033[0m", #f1, f1, #f2, f2); \
+    failed = 1; \
 }
 
 #define ASSERT_CF_EQ(cf1, cf2) if ( \
@@ -35,6 +36,7 @@ int failed = 0;
 } else { \
     printf("\033[0;31mFAIL: %s(%0.4f+%0.4fi)==%s(%0.4f+%0.4fi)\n\033[0m", \
            #cf1, creal(cf1), cimag(cf1), #cf2, creal(cf2), cimag(cf2)); \
+    failed =  1; \
 }
 
 TEST(test_dft)
@@ -116,5 +118,5 @@ int main() {
     RUN_TEST(test_dft);
     RUN_TEST(test_dft_inverse);
     RUN_TEST(test_fft);
-    return 0;
+    return failed;
 }
