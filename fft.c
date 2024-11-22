@@ -5,7 +5,7 @@
 #include <complex.h>
 
 #define EPSILON 0.00001f
-#define DEBUG 0
+#define DEBUG 1
 #define INFO if (DEBUG>0) printf
 
 
@@ -79,7 +79,7 @@ void round_complex(float complex* f) {
     *f = re + im*I;
 }
 
-#define N 1<<14
+#define N 4//1<<14
 #define VAL_MAX 32
 
 #define PERFORM_FFT

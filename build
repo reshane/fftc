@@ -1,1 +1,4 @@
+set -e
+gcc -Wall -Wextra test.c -lm -o test
+./test
 gcc -Wall -Wextra fft.c -lm -o fft
