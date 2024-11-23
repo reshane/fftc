@@ -28,7 +28,7 @@
 
 // [[ CONSTANTS ]]
 
-#define FFT_EPSILON 0.0000001f
+#define FFT_EPSILON 0.00001f
 
 // [[ STRUCTURES ]]
 
@@ -55,6 +55,13 @@ fft_Matrix_cf fft_mat_alloc(size_t rows, size_t cols);
 void fft_mat_free(fft_Matrix_cf* mat);
 float complex fft_mat_get(fft_Matrix_cf* mat, size_t x, size_t y);
 void fft_mat_set(fft_Matrix_cf* mat, size_t x, size_t y, float complex e);
+
+// [[ ALGORITHMS ]]
+
+void dft(fft_Vec_cf* series, fft_Vec_cf* dft_series);
+void dft_inverse(fft_Vec_cf* dft_series, fft_Vec_cf* series);
+void fft(fft_Vec_cf* series, fft_Vec_cf* dft_series);
+void fft_inverse(fft_Vec_cf* dft_series, fft_Vec_cf* series);
 
 #endif // FFT_H_
 
@@ -205,6 +212,51 @@ void fft(fft_Vec_cf* series, fft_Vec_cf* dft_series)
 
         fft_vec_set(dft_series, k, y0);
         fft_vec_set(dft_series, k+series_count/2, y1);
+    }
+
+    fft_vec_free(&evn_dft);
+    fft_vec_free(&odd_dft);
+}
+
+void fft_inverse(fft_Vec_cf* dft_series, fft_Vec_cf* series)
+{
+    FFT_ASSERT(dft_series->size == series->size);
+    if (dft_series->size == 1) {
+        fft_vec_set(series, 0, fft_vec_get(dft_series, 0));
+        return;
+    }
+    size_t series_count = dft_series->size;
+    FFT_ASSERT(series_count % 2 == 0);
+
+    // split the series into even and off
+    fft_Vec_cf evn = fft_vec_alloc(series_count/2);
+    fft_Vec_cf odd = fft_vec_alloc(series_count/2);
+    for (size_t k = 0; k < series_count/2; ++k) {
+        fft_vec_set(&evn, k, fft_vec_get(dft_series, k*2));
+        fft_vec_set(&odd, k, fft_vec_get(dft_series, (k*2)+1));
+    }
+
+    // get dft of each part
+    fft_Vec_cf evn_dft = fft_vec_alloc(series_count/2);
+    fft_Vec_cf odd_dft = fft_vec_alloc(series_count/2);
+
+    fft_inverse(&evn, &evn_dft);
+    fft_inverse(&odd, &odd_dft);
+
+    fft_vec_free(&evn);
+    fft_vec_free(&odd);
+
+    // butterfly them together
+    for (size_t k = 0; k < series_count/2; ++k) {
+        float complex w = cexp((2.f*I*M_PI*(int)k)/series_count);
+        float complex x0 = fft_vec_get(&evn_dft, k);
+        float complex x1 = fft_vec_get(&odd_dft, k);
+
+        float complex y0 = 0.5f*(x0 + x1*w);
+        float complex y1 = 0.5f*(x0 - x1*w);
+
+        fft_vec_set(series, k, y0);
+        fft_vec_set(series, k+series_count/2, y1);
     }
 
     fft_vec_free(&evn_dft);

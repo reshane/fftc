@@ -41,7 +41,7 @@ int failed = 0;
 
 TEST(test_dft)
 {
-    size_t n = 4;
+    size_t n = 8;
     fft_Vec_cf a = fft_vec_alloc(n);
     fft_Vec_cf b = fft_vec_alloc(n);
     fft_Vec_cf c = fft_vec_alloc(n);
@@ -50,12 +50,20 @@ TEST(test_dft)
     fft_vec_set(&a, 1,  2.f + -1.f * I);
     fft_vec_set(&a, 2,  0.f + -1.f * I);
     fft_vec_set(&a, 3, -1.f +  2.f * I);
+    fft_vec_set(&a, 4,  1.f +  0.f * I);
+    fft_vec_set(&a, 5,  2.f + -1.f * I);
+    fft_vec_set(&a, 6,  0.f + -1.f * I);
+    fft_vec_set(&a, 7, -1.f +  2.f * I);
 
 
-    fft_vec_set(&c, 0,  2.f +  0.f * I);
-    fft_vec_set(&c, 1, -2.f + -2.f * I);
-    fft_vec_set(&c, 2,  0.f + -2.f * I);
-    fft_vec_set(&c, 3,  4.f +  4.f * I);
+    fft_vec_set(&c, 0,  4.f +  0.f * I);
+    fft_vec_set(&c, 1,  0.f +  0.f * I);
+    fft_vec_set(&c, 2, -4.f + -4.f * I);
+    fft_vec_set(&c, 3,  0.f +  0.f * I);
+    fft_vec_set(&c, 4,  0.f + -4.f * I);
+    fft_vec_set(&c, 5,  0.f +  0.f * I);
+    fft_vec_set(&c, 6,  8.f +  8.f * I);
+    fft_vec_set(&c, 7,  0.f +  0.f * I);
 
     dft(&a, &b);
 
@@ -66,7 +74,7 @@ TEST(test_dft)
 
 TEST(test_dft_inverse)
 {
-    size_t n = 4;
+    size_t n = 8;
     fft_Vec_cf a = fft_vec_alloc(n);
     fft_Vec_cf b = fft_vec_alloc(n);
     fft_Vec_cf c = fft_vec_alloc(n);
@@ -75,12 +83,20 @@ TEST(test_dft_inverse)
     fft_vec_set(&a, 1,  2.f + -1.f * I);
     fft_vec_set(&a, 2,  0.f + -1.f * I);
     fft_vec_set(&a, 3, -1.f +  2.f * I);
+    fft_vec_set(&a, 4,  1.f +  0.f * I);
+    fft_vec_set(&a, 5,  2.f + -1.f * I);
+    fft_vec_set(&a, 6,  0.f + -1.f * I);
+    fft_vec_set(&a, 7, -1.f +  2.f * I);
 
 
-    fft_vec_set(&c, 0,  2.f +  0.f * I);
-    fft_vec_set(&c, 1, -2.f + -2.f * I);
-    fft_vec_set(&c, 2,  0.f + -2.f * I);
-    fft_vec_set(&c, 3,  4.f +  4.f * I);
+    fft_vec_set(&c, 0,  4.f +  0.f * I);
+    fft_vec_set(&c, 1,  0.f +  0.f * I);
+    fft_vec_set(&c, 2, -4.f + -4.f * I);
+    fft_vec_set(&c, 3,  0.f +  0.f * I);
+    fft_vec_set(&c, 4,  0.f + -4.f * I);
+    fft_vec_set(&c, 5,  0.f +  0.f * I);
+    fft_vec_set(&c, 6,  8.f +  8.f * I);
+    fft_vec_set(&c, 7,  0.f +  0.f * I);
 
     dft_inverse(&c, &b);
 
@@ -91,7 +107,7 @@ TEST(test_dft_inverse)
 
 TEST(test_fft)
 {
-    size_t n = 4;
+    size_t n = 8;
     fft_Vec_cf a = fft_vec_alloc(n);
     fft_Vec_cf b = fft_vec_alloc(n);
     fft_Vec_cf c = fft_vec_alloc(n);
@@ -100,12 +116,20 @@ TEST(test_fft)
     fft_vec_set(&a, 1,  2.f + -1.f * I);
     fft_vec_set(&a, 2,  0.f + -1.f * I);
     fft_vec_set(&a, 3, -1.f +  2.f * I);
+    fft_vec_set(&a, 4,  1.f +  0.f * I);
+    fft_vec_set(&a, 5,  2.f + -1.f * I);
+    fft_vec_set(&a, 6,  0.f + -1.f * I);
+    fft_vec_set(&a, 7, -1.f +  2.f * I);
 
 
-    fft_vec_set(&c, 0,  2.f +  0.f * I);
-    fft_vec_set(&c, 1, -2.f + -2.f * I);
-    fft_vec_set(&c, 2,  0.f + -2.f * I);
-    fft_vec_set(&c, 3,  4.f +  4.f * I);
+    fft_vec_set(&c, 0,  4.f +  0.f * I);
+    fft_vec_set(&c, 1,  0.f +  0.f * I);
+    fft_vec_set(&c, 2, -4.f + -4.f * I);
+    fft_vec_set(&c, 3,  0.f +  0.f * I);
+    fft_vec_set(&c, 4,  0.f + -4.f * I);
+    fft_vec_set(&c, 5,  0.f +  0.f * I);
+    fft_vec_set(&c, 6,  8.f +  8.f * I);
+    fft_vec_set(&c, 7,  0.f +  0.f * I);
 
     fft(&a, &b);
 
@@ -114,9 +138,127 @@ TEST(test_fft)
     }
 }
 
+TEST(test_fft_inverse)
+{
+    size_t n = 8;
+    fft_Vec_cf a = fft_vec_alloc(n);
+    fft_Vec_cf b = fft_vec_alloc(n);
+    fft_Vec_cf c = fft_vec_alloc(n);
+
+    fft_vec_set(&a, 0,  1.f +  0.f * I);
+    fft_vec_set(&a, 1,  2.f + -1.f * I);
+    fft_vec_set(&a, 2,  0.f + -1.f * I);
+    fft_vec_set(&a, 3, -1.f +  2.f * I);
+    fft_vec_set(&a, 4,  1.f +  0.f * I);
+    fft_vec_set(&a, 5,  2.f + -1.f * I);
+    fft_vec_set(&a, 6,  0.f + -1.f * I);
+    fft_vec_set(&a, 7, -1.f +  2.f * I);
+
+
+    fft_vec_set(&c, 0,  4.f +  0.f * I);
+    fft_vec_set(&c, 1,  0.f +  0.f * I);
+    fft_vec_set(&c, 2, -4.f + -4.f * I);
+    fft_vec_set(&c, 3,  0.f +  0.f * I);
+    fft_vec_set(&c, 4,  0.f + -4.f * I);
+    fft_vec_set(&c, 5,  0.f +  0.f * I);
+    fft_vec_set(&c, 6,  8.f +  8.f * I);
+    fft_vec_set(&c, 7,  0.f +  0.f * I);
+
+    fft_inverse(&c, &b);
+
+    for (size_t k = 0; k < n; ++k) {
+        ASSERT_CF_EQ(fft_vec_get(&a, k), fft_vec_get(&b, k))
+    }
+}
+
+TEST(test_dft_polynomial_multiplication)
+{
+    size_t n = 4;
+    // (x^2 + x)(x^2 + x) = (x^4 + 2x^3 + x^2 0x)
+    fft_Vec_cf a = fft_vec_alloc(n);
+    fft_Vec_cf b = fft_vec_alloc(n);
+    fft_Vec_cf c = fft_vec_alloc(n);
+    fft_Vec_cf d = fft_vec_alloc(n);
+
+    fft_vec_set(&a, 0, 0.f);
+    fft_vec_set(&a, 1, 0.f);
+    fft_vec_set(&a, 2, 1.f);
+    fft_vec_set(&a, 3, 1.f);
+
+    fft_vec_set(&b, 0, 0.f);
+    fft_vec_set(&b, 1, 0.f);
+    fft_vec_set(&b, 2, 1.f);
+    fft_vec_set(&b, 3, 1.f);
+
+    dft(&a, &c);
+    dft(&b, &d);
+
+    fft_Vec_cf e = fft_vec_alloc(n);
+    fft_Vec_cf f = fft_vec_alloc(n);
+    for (size_t k = 0; k < n; ++k) {
+        fft_vec_set(&e, k, fft_vec_get(&c, k) * fft_vec_get(&d, k));
+    }
+
+    dft_inverse(&e, &f);
+
+    fft_Vec_cf g = fft_vec_alloc(n);
+    fft_vec_set(&g, 0, 1.f);
+    fft_vec_set(&g, 1, 2.f);
+    fft_vec_set(&g, 2, 1.f);
+    fft_vec_set(&g, 3, 0.f);
+
+    for (size_t k = 0; k < n; ++k) {
+        ASSERT_CF_EQ(fft_vec_get(&f, k), fft_vec_get(&g, k))
+    }
+}
+
+TEST(test_fft_polynomial_multiplication)
+{
+    size_t n = 4;
+    // (x^2 + x)(x^2 + x) = (x^4 + 2x^3 + x^2 0x)
+    fft_Vec_cf a = fft_vec_alloc(n);
+    fft_Vec_cf b = fft_vec_alloc(n);
+    fft_Vec_cf c = fft_vec_alloc(n);
+    fft_Vec_cf d = fft_vec_alloc(n);
+
+    fft_vec_set(&a, 0, 0.f);
+    fft_vec_set(&a, 1, 0.f);
+    fft_vec_set(&a, 2, 1.f);
+    fft_vec_set(&a, 3, 1.f);
+
+    fft_vec_set(&b, 0, 0.f);
+    fft_vec_set(&b, 1, 0.f);
+    fft_vec_set(&b, 2, 1.f);
+    fft_vec_set(&b, 3, 1.f);
+
+    fft(&a, &c);
+    fft(&b, &d);
+
+    fft_Vec_cf e = fft_vec_alloc(n);
+    fft_Vec_cf f = fft_vec_alloc(n);
+    for (size_t k = 0; k < n; ++k) {
+        fft_vec_set(&e, k, fft_vec_get(&c, k) * fft_vec_get(&d, k));
+    }
+
+    fft_inverse(&e, &f);
+
+    fft_Vec_cf g = fft_vec_alloc(n);
+    fft_vec_set(&g, 0, 1.f);
+    fft_vec_set(&g, 1, 2.f);
+    fft_vec_set(&g, 2, 1.f);
+    fft_vec_set(&g, 3, 0.f);
+
+    for (size_t k = 0; k < n; ++k) {
+        ASSERT_CF_EQ(fft_vec_get(&f, k), fft_vec_get(&g, k))
+    }
+}
+
 int main() {
     RUN_TEST(test_dft);
     RUN_TEST(test_dft_inverse);
+    RUN_TEST(test_dft_polynomial_multiplication);
     RUN_TEST(test_fft);
+    RUN_TEST(test_fft_inverse);
+    RUN_TEST(test_fft_polynomial_multiplication);
     return failed;
 }
