@@ -25,7 +25,6 @@ int failed = 0;
     printf("\033[0;31mFAIL: %s(%f)==%s(%f)\n\033[0m", #f1, f1, #f2, f2); \
     failed = 1; \
 }
-
 #define ASSERT_CF_EQ(cf1, cf2) if ( \
     ((creal(cf1)-creal(cf2))>-1.f*FFT_EPSILON) && ((creal(cf1)-creal(cf2))<FFT_EPSILON) \
     && \
@@ -34,7 +33,16 @@ int failed = 0;
     printf("\033[0;32mPASS: %s(%0.4f+%0.4fi)==%s(%0.4f+%0.4fi)\n\033[0m", \
            #cf1, creal(cf1), cimag(cf1), #cf2, creal(cf2), cimag(cf2)); \
 } else { \
-    printf("\033[0;31mFAIL: %s(%0.4f+%0.4fi)==%s(%0.4f+%0.4fi)\n\033[0m", \
+    printf("\033[0;31mFAIL: %s(%0.9f+%0.9fi)==%s(%0.9f+%0.9fi)\n\033[0m", \
+           #cf1, creal(cf1), cimag(cf1), #cf2, creal(cf2), cimag(cf2)); \
+    failed =  1; \
+}
+#define ASSERT_CF_EQ_S(cf1, cf2) if (!( \
+    ((creal(cf1)-creal(cf2))>-1.f*FFT_EPSILON) && ((creal(cf1)-creal(cf2))<FFT_EPSILON) \
+    && \
+    ((cimag(cf1)-cimag(cf2))>-1.f*FFT_EPSILON) && ((cimag(cf1)-cimag(cf2))<FFT_EPSILON) \
+    )) { \
+    printf("\033[0;31mFAIL: %s(%0.9f+%0.9fi)==%s(%0.9f+%0.9fi)\n\033[0m", \
            #cf1, creal(cf1), cimag(cf1), #cf2, creal(cf2), cimag(cf2)); \
     failed =  1; \
 }
@@ -253,6 +261,39 @@ TEST(test_fft_polynomial_multiplication)
     }
 }
 
+TEST(fft_and_dft)
+{
+    size_t n = 1<<5;
+    size_t val_max = 32;
+    fft_Vec_cf a = fft_vec_alloc(n);
+    fft_Vec_cf b = fft_vec_alloc(n);
+    fft_Vec_cf c = fft_vec_alloc(n);
+    fft_Vec_cf d = fft_vec_alloc(n);
+    fft_Vec_cf e = fft_vec_alloc(n);
+
+    for (size_t i=0; i<a.size; ++i) {
+        fft_vec_set(&a, i, (float)(i % val_max));
+    }
+
+    fft(&a, &b);
+    fft_inverse(&b, &d);
+    dft(&a, &c);
+    dft_inverse(&c, &e);
+
+    printf("------------------------------\n");
+    printf("|            \033[1mFFT\033[0m             |\n");
+    printf("------------------------------\n");
+    for (size_t k = 0; k < n; ++k) {
+        ASSERT_CF_EQ_S(fft_vec_get(&a, k), fft_vec_get(&d, k))
+    }
+    printf("------------------------------\n");
+    printf("|            \033[1mDFT\033[0m             |\n");
+    printf("------------------------------\n");
+    for (size_t k = 0; k < n; ++k) {
+        ASSERT_CF_EQ_S(fft_vec_get(&a, k), fft_vec_get(&e, k))
+    }
+}
+
 int main() {
     RUN_TEST(test_dft);
     RUN_TEST(test_dft_inverse);
@@ -260,5 +301,6 @@ int main() {
     RUN_TEST(test_fft);
     RUN_TEST(test_fft_inverse);
     RUN_TEST(test_fft_polynomial_multiplication);
+    RUN_TEST(fft_and_dft);
     return failed;
 }
