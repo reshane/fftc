@@ -5,126 +5,6 @@
 #include <errno.h>
 // #include <strerror.h>
 
-void fft_matrix(fft_Matrix_cf* mat)
-{
-    // TODO: this should be its own standalone function
-    // and should not rely on the fft of Vectors
-    // should be able to apply fft to a row and col
-    // also should accept a target matrix of the same dims
-    size_t img_rows = mat->rows;
-    size_t img_cols = mat->cols;
-    printf("rows: %ld, cols: %ld\n", img_rows, img_cols);
-    fft_Vec_cf rows[img_rows];
-    fft_Vec_cf dft_rows[img_rows];
-    fft_Vec_cf cols[img_cols];
-    fft_Vec_cf dft_cols[img_cols];
-
-    // put the matrix rows in the rows array of vectors
-    for (size_t k = 0; k < img_rows; ++k) {
-        rows[k] = fft_vec_alloc(img_cols);
-        for (size_t j = 0; j < img_cols; ++j) {
-            fft_vec_set(&rows[k], j, fft_mat_get(mat, k, j));
-        }
-    }
-
-    // perform an fft on each row
-    for (size_t k = 0; k < img_rows; ++k) {
-        dft_rows[k] = fft_vec_alloc(img_cols);
-        fft(&rows[k], &dft_rows[k]);
-        fft_vec_free(&rows[k]);
-    }
-
-    for (size_t k = 0; k < mat->rows; ++k) {
-        for (size_t j = 0; j < mat->cols; ++j) {
-            // float complex f = fft_vec_get(&dft_rows[k], j);
-            // printf("%f+%fi ", creal(f), cimag(f));
-        }
-        // printf("\n");
-    }
-
-    // copy the rows over to the cols array of vectors
-    for (size_t j = 0; j < img_cols; j++) {
-        cols[j] = fft_vec_alloc(img_rows);
-        for (size_t k = 0; k < img_rows; ++k) {
-            fft_vec_set(&cols[j], k, fft_vec_get(&dft_rows[k], j));
-        }
-    }
-
-    // free all the dft_rows vectors
-    for (size_t k = 0; k < img_rows; ++k) {
-        fft_vec_free(&dft_rows[k]);
-    }
-
-    // perform an fft on each column 
-    for (size_t k = 0; k < img_cols; ++k) {
-        dft_cols[k] = fft_vec_alloc(img_rows);
-        fft(&cols[k], &dft_cols[k]);
-        fft_vec_free(&cols[k]);
-    }
-
-    // copy the cols back into the matrix
-    for (size_t k = 0; k < img_cols; ++k) {
-        for (size_t j = 0; j < img_rows; ++j) {
-            fft_mat_set(mat, j, k, fft_vec_get(&dft_cols[k], j));
-        }
-        fft_vec_free(&dft_cols[k]);
-    }
-}
-
-void fft_matrix_inverse(fft_Matrix_cf* mat)
-{
-    size_t img_rows = mat->rows;
-    size_t img_cols = mat->cols;
-    printf("rows: %ld, cols: %ld\n", img_rows, img_cols);
-    fft_Vec_cf rows[img_rows];
-    fft_Vec_cf dft_rows[img_rows];
-    fft_Vec_cf cols[img_cols];
-    fft_Vec_cf dft_cols[img_cols];
-
-    // put the matrix cols in the cols array of vectors
-    for (size_t k = 0; k < img_cols; ++k) {
-        cols[k] = fft_vec_alloc(img_rows);
-        for (size_t j = 0; j < img_rows; ++j) {
-            fft_vec_set(&cols[k], j, fft_mat_get(mat, k, j));
-        }
-    }
-
-    // perform an inverse fft on each col
-    for (size_t k = 0; k < img_cols; ++k) {
-        dft_cols[k] = fft_vec_alloc(img_rows);
-        fft_inverse(&cols[k], &dft_cols[k]);
-        fft_vec_free(&cols[k]);
-    }
-
-    // copy the cols over to the rows array of vectors
-    for (size_t j = 0; j < img_rows; j++) {
-        rows[j] = fft_vec_alloc(img_cols);
-        for (size_t k = 0; k < img_cols; ++k) {
-            fft_vec_set(&rows[j], k, fft_vec_get(&dft_cols[k], j));
-        }
-    }
-
-    // free all the dft_cols vectors
-    for (size_t k = 0; k < img_cols; ++k) {
-        fft_vec_free(&dft_cols[k]);
-    }
-
-    // perform an fft on each row
-    for (size_t k = 0; k < img_rows; ++k) {
-        dft_rows[k] = fft_vec_alloc(img_cols);
-        fft_inverse(&rows[k], &dft_rows[k]);
-        fft_vec_free(&rows[k]);
-    }
-
-    // copy the rows back into the matrix
-    for (size_t k = 0; k < img_rows; ++k) {
-        for (size_t j = 0; j < img_cols; ++j) {
-            fft_mat_set(mat, j, k, fft_vec_get(&dft_rows[k], j));
-        }
-        fft_vec_free(&dft_rows[k]);
-    }
-}
-
 void print_matrix(fft_Matrix_cf* mat)
 {
     for (size_t k = 0; k < mat->rows; ++k) {
@@ -225,22 +105,52 @@ void fill_image_sin_wave(uint32_t* img, int img_w, int img_h)
     }
 }
 
+float sigmoidf(float x) {
+    return 1.f / (1.f - exp(x));
+}
+
+float gauss(float cx, float cy, float ax, float ay, float a, float x, float y) {
+    return a * exp(-1.f * ((((x-cx)*(x-cx))/2.f*ax*ax) + (((y-cy)*(y-cy))/2.f*ay*ay)));
+}
+
+void fill_blr_gaussian(fft_Matrix_cf* mat) {
+    for (size_t k = 0; k < mat->cols; ++k) {
+        for (size_t j = 0; j < mat->rows; ++j) {
+            float alpha = 10.f;
+            float y = 1.f - gauss(256.f, 256.f, alpha, alpha, 1.f, k, j);
+            fft_mat_set(mat, k, j, y);
+        }
+    }
+}
+
 int main()
 {
-    // fft on the rows of a matrix
-    // fft on the cols of the fft'd matrix
     size_t img_rows = 512, img_cols = 512;
     uint32_t* img = (uint32_t*)malloc(img_rows*img_cols*sizeof(uint32_t));
-    // fill_image_white(img, img_cols, img_rows);
+
+    fill_image_white(img, img_cols, img_rows);
     // draw_circle(img_cols/2, img_rows/2, 15, img, img_cols, img_rows);
-    // rectangle(img_cols/2 - 50, img_rows/2 - 50, 30, 10, img, img_cols, img_rows);
+    rectangle(img_cols/2 - 50, img_rows/2 - 50, 30, 10, img, img_cols, img_rows);
+
     fill_image_sin_wave(img, img_cols, img_rows);
     save_img_as_ppm(img, img_rows, img_cols, "original.ppm");
 
     fft_Matrix_cf mat = fft_mat_alloc(img_rows, img_cols);
 
-    // size_t blr_rows = 4, blr_cols = 4;
-    // fft_Matrix_cf blr = fft_mat_alloc(blr_rows, blr_cols);
+    size_t blr_rows = 512, blr_cols = 512;
+    fft_Matrix_cf blr = fft_mat_alloc(blr_rows, blr_cols);
+    uint32_t* blr_img = (uint32_t*)malloc(blr_rows*blr_cols*sizeof(uint32_t));
+
+    fill_blr_gaussian(&blr);
+    
+    for (size_t x = 0; x < blr_rows; ++x) {
+        for (size_t y = 0; y < blr_cols; ++y) {
+            float px = creal(fft_mat_get(&blr, x, y));
+            uint32_t sig = px * 0xFFFFFF;
+            blr_img[x+y*blr_cols] = 0xFF000000|sig;
+        }
+    }
+    save_img_as_ppm(blr_img, blr_rows, blr_cols, "gauss.ppm");
 
     for (size_t x = 0; x < img_cols; ++x) {
         for (size_t y = 0; y < img_rows; ++y) {
@@ -255,14 +165,11 @@ int main()
         // }
     // }
 
-    printf("ORIGINAL:\n");
-    printf("----------------------\n");
     // print_matrix(&mat);
-    printf("----------------------\n");
     fft_matrix(&mat);
     // fft_matrix(&blr);
-    for (size_t x = 0; x < img_cols; ++x) {
-        for (size_t y = 0; y < img_rows; ++y) {
+    for (size_t y = 0; y < img_rows; ++y) {
+        for (size_t x = 0; x < img_cols; ++x) {
             float px = creal(fft_mat_get(&mat, x, y));
             // float sig = (1.f / 2.f*(1.f + exp(px))) + 1.f;
             uint32_t sig = px * 0xFFFFFF;
@@ -275,14 +182,27 @@ int main()
     }
     save_img_as_ppm(img, img_rows, img_cols, "fft.ppm");
 
-    // for (size_t k = 0; k < img_rows; ++k) {
-        // for (size_t j = 0; j < img_cols; ++j) {
-            // fft_mat_set(&mat, k, j, fft_mat_get(&mat, k, j) * fft_mat_get(&blr, k, j));
-        // }
-    // }
-    // print_matrix(&mat);
-    // printf("----------------------\n");
-    // return 0;
+    // multiply the matrices pair-wise
+    for (size_t k = 0; k < img_cols; ++k) {
+        for (size_t j = 0; j < img_rows; ++j) {
+            fft_mat_set(&mat, k, j, fft_mat_get(&mat, k, j) * fft_mat_get(&blr, k, j));
+        }
+    }
+
+    for (size_t y = 0; y < img_rows; ++y) {
+        for (size_t x = 0; x < img_cols; ++x) {
+            float px = creal(fft_mat_get(&mat, x, y));
+            // float sig = (1.f / 2.f*(1.f + exp(px))) + 1.f;
+            uint32_t sig = px * 0xFFFFFF;
+            // uint32_t mag = (sig * (float)0xFFFFFF);
+            // printf("%f -> ", px);
+            // printf("%f -> ", sig);
+            // printf("%ld\n", mag);
+            img[x+y*img_cols] = 0xFF000000|sig;
+        }
+    }
+    save_img_as_ppm(img, img_rows, img_cols, "filtered_fft.ppm");
+
     fft_matrix_inverse(&mat);
     for (size_t x = 0; x < img_cols; ++x) {
         for (size_t y = 0; y < img_rows; ++y) {
@@ -296,13 +216,8 @@ int main()
         }
     }
     save_img_as_ppm(img, img_rows, img_cols, "restored.ppm");
-    // printf("RESULT:\n");
-    // printf("----------------------\n");
-    // print_matrix(&mat);
-    // printf("----------------------\n");
 
     fft_mat_free(&mat);
-    // fft_mat_free(&blr);
     free(img);
     return 0;
 }

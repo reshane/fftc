@@ -263,4 +263,122 @@ void fft_inverse(fft_Vec_cf* dft_series, fft_Vec_cf* series)
     fft_vec_free(&odd_dft);
 }
 
+void fft_matrix(fft_Matrix_cf* mat)
+{
+    // TODO: this should be its own standalone function
+    // and should not rely on the fft of Vectors
+    // should be able to apply fft to a row and col
+    // also should accept a target matrix of the same dims
+    size_t img_rows = mat->rows;
+    size_t img_cols = mat->cols;
+    fft_Vec_cf rows[img_rows];
+    fft_Vec_cf dft_rows[img_rows];
+    fft_Vec_cf cols[img_cols];
+    fft_Vec_cf dft_cols[img_cols];
+
+    // put the matrix rows in the rows array of vectors
+    for (size_t k = 0; k < img_rows; ++k) {
+        rows[k] = fft_vec_alloc(img_cols);
+        for (size_t j = 0; j < img_cols; ++j) {
+            fft_vec_set(&rows[k], j, fft_mat_get(mat, k, j));
+        }
+    }
+
+    // perform an fft on each row
+    for (size_t k = 0; k < img_rows; ++k) {
+        dft_rows[k] = fft_vec_alloc(img_cols);
+        fft(&rows[k], &dft_rows[k]);
+        fft_vec_free(&rows[k]);
+    }
+
+    for (size_t k = 0; k < mat->rows; ++k) {
+        for (size_t j = 0; j < mat->cols; ++j) {
+            // float complex f = fft_vec_get(&dft_rows[k], j);
+            // printf("%f+%fi ", creal(f), cimag(f));
+        }
+        // printf("\n");
+    }
+
+    // copy the rows over to the cols array of vectors
+    for (size_t j = 0; j < img_cols; j++) {
+        cols[j] = fft_vec_alloc(img_rows);
+        for (size_t k = 0; k < img_rows; ++k) {
+            fft_vec_set(&cols[j], k, fft_vec_get(&dft_rows[k], j));
+        }
+    }
+
+    // free all the dft_rows vectors
+    for (size_t k = 0; k < img_rows; ++k) {
+        fft_vec_free(&dft_rows[k]);
+    }
+
+    // perform an fft on each column 
+    for (size_t k = 0; k < img_cols; ++k) {
+        dft_cols[k] = fft_vec_alloc(img_rows);
+        fft(&cols[k], &dft_cols[k]);
+        fft_vec_free(&cols[k]);
+    }
+
+    // copy the cols back into the matrix
+    for (size_t k = 0; k < img_cols; ++k) {
+        for (size_t j = 0; j < img_rows; ++j) {
+            fft_mat_set(mat, j, k, fft_vec_get(&dft_cols[k], j));
+        }
+        fft_vec_free(&dft_cols[k]);
+    }
+}
+
+void fft_matrix_inverse(fft_Matrix_cf* mat)
+{
+    size_t img_rows = mat->rows;
+    size_t img_cols = mat->cols;
+    fft_Vec_cf rows[img_rows];
+    fft_Vec_cf dft_rows[img_rows];
+    fft_Vec_cf cols[img_cols];
+    fft_Vec_cf dft_cols[img_cols];
+
+    // put the matrix cols in the cols array of vectors
+    for (size_t k = 0; k < img_cols; ++k) {
+        cols[k] = fft_vec_alloc(img_rows);
+        for (size_t j = 0; j < img_rows; ++j) {
+            fft_vec_set(&cols[k], j, fft_mat_get(mat, k, j));
+        }
+    }
+
+    // perform an inverse fft on each col
+    for (size_t k = 0; k < img_cols; ++k) {
+        dft_cols[k] = fft_vec_alloc(img_rows);
+        fft_inverse(&cols[k], &dft_cols[k]);
+        fft_vec_free(&cols[k]);
+    }
+
+    // copy the cols over to the rows array of vectors
+    for (size_t j = 0; j < img_rows; j++) {
+        rows[j] = fft_vec_alloc(img_cols);
+        for (size_t k = 0; k < img_cols; ++k) {
+            fft_vec_set(&rows[j], k, fft_vec_get(&dft_cols[k], j));
+        }
+    }
+
+    // free all the dft_cols vectors
+    for (size_t k = 0; k < img_cols; ++k) {
+        fft_vec_free(&dft_cols[k]);
+    }
+
+    // perform an fft on each row
+    for (size_t k = 0; k < img_rows; ++k) {
+        dft_rows[k] = fft_vec_alloc(img_cols);
+        fft_inverse(&rows[k], &dft_rows[k]);
+        fft_vec_free(&rows[k]);
+    }
+
+    // copy the rows back into the matrix
+    for (size_t k = 0; k < img_rows; ++k) {
+        for (size_t j = 0; j < img_cols; ++j) {
+            fft_mat_set(mat, j, k, fft_vec_get(&dft_rows[k], j));
+        }
+        fft_vec_free(&dft_rows[k]);
+    }
+}
+
 #endif // FFT_IMPLEMENTATION
